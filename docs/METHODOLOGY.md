@@ -30,6 +30,34 @@ direct cane-juice litres of ethanol per tonne of cane) all imply once
 divided through by the theoretical yield -- a real cross-check derived
 from the data, not chosen to make a demo work.
 
+## Starch hydrolysis (`ethanol_design/starch_hydrolysis.py`)
+
+Grain (milled rice, broken rice, maize) needs an enzymatic conversion
+step molasses/cane juice skips entirely: liquefaction (thermostable
+alpha-amylase, 95-105 C, pH 6.0-6.5, endo-acting on starch's alpha-1,4
+bonds to give dextrins) followed by saccharification (glucoamylase,
+exo-acting, dextrins to glucose) -- standard dry-grind process steps,
+widely described in the corn dry-grind ethanol literature. Starch
+content defaults (milled/broken rice 80%, cited range 75-80%; maize
+72.5%, FAO's cited 72-73% of dry kernel weight) and the default 95%
+combined hydrolysis efficiency (a lab-scale-optimized figure from a
+glucoamylase/alpha-amylase corn dry-grind study reporting 95.1%
+combined conversion) are all independently cited; see docs/VALIDATION.md
+for the honest gap this ceiling leaves against real full-scale plant
+output.
+
+## DDGS (`ethanol_design/ddgs.py`)
+
+Distillers Dried Grains with Solubles -- a grain distillery's real
+co-product in place of molasses distillery's spent wash. Computed by
+an exact mass balance (non-starch solids + unconverted starch + yeast
+biomass, dried to a target moisture content), not a recalled yield
+ratio. Yeast biomass yield (0.08 kg/kg sugar) is Bailey & Ollis's
+typical 0.05-0.12 g/g range midpoint for anaerobic/microaerobic
+S. cerevisiae ethanolic fermentation; DDGS moisture target (10%) is
+inside the 8-12% commercial feed-grade range cited by both industry and
+the IMSBC bulk-cargo code (which caps it under 13%).
+
 ## Distillation (`ethanol_design/distillation.py`)
 
 Fenske-Underwood-Gilliland (FUG) shortcut method (Seader, Henley &

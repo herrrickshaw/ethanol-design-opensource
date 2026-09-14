@@ -45,6 +45,42 @@ fermentation (e.g. the operating-conditions study cited in
 48 h fermentation), so it was adopted as this package's default rather
 than an arbitrary round number.
 
+## Grain route: a real, honestly-disclosed overshoot against published India figures
+
+India's grain-based ethanol industry publishes real litres-of-ethanol-
+per-tonne-of-grain figures: 450 L/tonne for full/milled rice, 440 L/tonne
+for broken rice, 380 L/tonne for maize (widely reported in coverage of
+FCI's rice allocation for ethanol and the industry's maize sourcing).
+`examples/grain_worked_example.py` runs all three through
+`starch_hydrolysis.py` (95% combined hydrolysis efficiency, a lab-scale-
+optimized ceiling) and `fermentation.py` (92.57%, the molasses-
+calibrated default):
+
+| Grain | Published yield | This package's model | Ratio |
+|---|---|---|---|
+| Milled rice | 450.0 L/tonne | 506.7 L/tonne | 1.126x |
+| Broken rice | 440.0 L/tonne | 506.7 L/tonne | 1.152x |
+| Maize | 380.0 L/tonne | 459.2 L/tonne | 1.208x |
+
+**Reported honestly, not corrected to fit**: the model consistently
+OVERSHOOTS real published output by 13-21%, worst for maize. This
+contrasts sharply with the cane/molasses calibration above, which
+matched three independent published figures almost exactly using one
+shared efficiency. The most likely explanation, consistent with general
+industry commentary that grain-based ethanol runs less efficiently than
+molasses-based ethanol in practice: this module's 95% hydrolysis
+efficiency default is a LAB-SCALE-OPTIMIZED figure (from a controlled
+bench study), while real full-scale commercial liquefaction/
+saccharification -- subject to feedstock quality variability, imperfect
+gelatinization at scale, and enzyme cost trade-offs -- runs measurably
+below that ceiling. Rather than silently lower the default to force a
+match (which would just be fitting a different unverified number), this
+gap is left visible: `hydrolysis_efficiency` is a fully overridable
+parameter, and a real plant's own measured combined conversion is the
+right input once available, exactly the same epistemic stance this
+project takes everywhere else a "typical" literature figure stands in
+for a real, unmeasured process.
+
 ## Full-chain worked example
 
 `examples/full_chain_worked_example.py` runs a representative

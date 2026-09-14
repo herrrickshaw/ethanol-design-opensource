@@ -9,11 +9,13 @@ from __future__ import annotations
 
 import streamlit as st
 
+from ethanol_design import ddgs as DG
 from ethanol_design import dehydration as DH
 from ethanol_design import distillation as D
 from ethanol_design import feedstock as F
 from ethanol_design import fermentation as FM
 from ethanol_design import properties as P
+from ethanol_design import starch_hydrolysis as SH
 from ethanol_design import stillage as S
 
 st.set_page_config(page_title="Ethanol Distillery Conceptual Sizing", layout="wide")
@@ -25,27 +27,45 @@ st.caption(
     "See README.md and docs/METHODOLOGY.md for citations, and the disclaimer at the bottom."
 )
 
-tab_feed, tab_ferm, tab_dist, tab_dehy, tab_still, tab_chain = st.tabs([
-    "Feedstock", "Fermentation", "Distillation", "Dehydration", "Stillage", "Full Chain",
+tab_feed, tab_ferm, tab_dist, tab_dehy, tab_still, tab_ddgs, tab_chain = st.tabs([
+    "Feedstock", "Fermentation", "Distillation", "Dehydration", "Stillage", "DDGS", "Full Chain",
 ])
 
 # ---------------------------------------------------------------------
 with tab_feed:
     st.header("Feedstock")
-    st.caption("India cane/molasses diversion routes -- see docs/METHODOLOGY.md.")
-    cane_flow_tpd = st.number_input("Cane crushed (tonnes/day)", min_value=10.0, value=1000.0)
-    cane_kg_s = cane_flow_tpd * 1000.0 / 86400.0
-    route = st.radio("Route", ["B-heavy molasses", "C-heavy (final) molasses", "Direct cane juice"])
-    if route == "B-heavy molasses":
-        fs = F.b_heavy_molasses_feedstock(cane_kg_s)
-    elif route == "C-heavy (final) molasses":
-        fs = F.c_heavy_molasses_feedstock(cane_kg_s)
+    st.caption("India cane/molasses/grain routes -- see docs/METHODOLOGY.md.")
+    feedstock_class = st.radio("Feedstock class", ["Cane / molasses", "Grain (rice/maize)"])
+    st.session_state["feedstock_class"] = feedstock_class
+    flow_tpd = st.number_input("Feedstock flow (tonnes/day)", min_value=10.0, value=1000.0)
+    flow_kg_s = flow_tpd * 1000.0 / 86400.0
+
+    if feedstock_class == "Cane / molasses":
+        route = st.radio("Route", ["B-heavy molasses", "C-heavy (final) molasses", "Direct cane juice"])
+        if route == "B-heavy molasses":
+            fs = F.b_heavy_molasses_feedstock(flow_kg_s)
+        elif route == "C-heavy (final) molasses":
+            fs = F.c_heavy_molasses_feedstock(flow_kg_s)
+        else:
+            fs = F.cane_juice_feedstock(flow_kg_s)
     else:
-        fs = F.cane_juice_feedstock(cane_kg_s)
+        grain_route = st.radio("Grain", ["Milled rice", "Broken rice", "Maize"])
+        hydrolysis_eff = st.slider("Hydrolysis efficiency", 0.70, 1.00, SH.DEFAULT_HYDROLYSIS_EFFICIENCY)
+        if grain_route == "Milled rice":
+            fs = SH.milled_rice(flow_kg_s, hydrolysis_eff)
+            st.session_state["starch_frac"] = SH.MILLED_RICE_STARCH_MASS_FRAC
+        elif grain_route == "Broken rice":
+            fs = SH.broken_rice(flow_kg_s, hydrolysis_eff)
+            st.session_state["starch_frac"] = SH.BROKEN_RICE_STARCH_MASS_FRAC
+        else:
+            fs = SH.maize(flow_kg_s, hydrolysis_eff)
+            st.session_state["starch_frac"] = SH.MAIZE_STARCH_MASS_FRAC
+        st.session_state["hydrolysis_eff"] = hydrolysis_eff
+
     st.session_state["feedstock"] = fs
     colA, colB, colC = st.columns(3)
     colA.metric("Feedstock flow", f"{fs.mass_flow_kg_s * 86400 / 1000:,.1f} t/day")
-    colB.metric("TFS content", f"{fs.tfs_mass_frac:.0%}")
+    colB.metric("Fermentable-sugar content", f"{fs.tfs_mass_frac:.1%}")
     colC.metric("Fermentable sugar", f"{fs.fermentable_sugar_kg_s() * 86400 / 1000:,.2f} t/day")
 
 # ---------------------------------------------------------------------
@@ -123,9 +143,11 @@ with tab_dehy:
 
 # ---------------------------------------------------------------------
 with tab_still:
-    st.header("Stillage (spent wash / vinasse)")
+    st.header("Stillage (spent wash / vinasse) -- cane/molasses route")
     if "ferment_result" not in st.session_state:
         st.info("Run the Fermentation tab first.")
+    elif st.session_state.get("feedstock_class") == "Grain (rice/maize)":
+        st.info("Stillage/vinasse applies to the cane/molasses route -- see the DDGS tab for grain's co-product.")
     else:
         r = st.session_state["ferment_result"]
         fresh_water = st.number_input("Fresh water use (L per L alcohol)", min_value=1.0, max_value=20.0, value=13.0)
@@ -135,6 +157,25 @@ with tab_still:
             colA.metric("Spent wash", f"{sw.spent_wash_flow_m3_day:,.0f} m3/day")
             colB.metric("COD load", f"{sw.cod_load_kg_day:,.0f} kg/day")
             colC.metric("Meets CPCB cap", str(sw.meets_cpcb_fresh_water_cap))
+
+# ---------------------------------------------------------------------
+with tab_ddgs:
+    st.header("DDGS (Distillers Dried Grains with Solubles) -- grain route")
+    if st.session_state.get("feedstock_class") != "Grain (rice/maize)":
+        st.info("Select 'Grain (rice/maize)' in the Feedstock tab first.")
+    elif "ferment_result" not in st.session_state:
+        st.info("Run the Fermentation tab first.")
+    else:
+        fs, r = st.session_state["feedstock"], st.session_state["ferment_result"]
+        moisture = st.slider("DDGS moisture target", 0.05, 0.13, DG.DEFAULT_DDGS_MOISTURE_FRAC)
+        if st.button("Characterize DDGS", type="primary"):
+            dg = DG.characterize_ddgs(fs.mass_flow_kg_s, st.session_state["starch_frac"],
+                                      st.session_state["hydrolysis_eff"], r.fermentable_sugar_kg_s,
+                                      ddgs_moisture_frac=moisture)
+            colA, colB, colC = st.columns(3)
+            colA.metric("DDGS output", f"{dg.ddgs_flow_tonne_day:,.1f} t/day")
+            colB.metric("Non-starch solids", f"{dg.non_starch_solids_kg_s * 86.4:,.1f} t/day")
+            colC.metric("Yeast biomass", f"{dg.yeast_biomass_kg_s * 86.4:,.1f} t/day")
 
 # ---------------------------------------------------------------------
 with tab_chain:
