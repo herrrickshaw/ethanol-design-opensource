@@ -90,7 +90,14 @@ trace water removal from natural gas in the sibling lng-design-
 opensource repo, whose two-bed GPSA Ch. 20 sizing structure this module
 reuses). Dynamic working capacity (3-5 wt%) and regeneration temperature
 (200-250 C) and the industrial 4-12 h adsorption-cycle range are all
-from the same sources.
+from the same sources. Regeneration duty sums the sensible heat to raise
+the purge stream to regeneration temperature AND the latent heat of
+adsorption (4.19 MJ/kg water, Interra Global's published mSORB 3A EDG
+datasheet -- see docs/VENDOR_REFERENCE.md) -- a real energy term added
+directly in response to finding that vendor figure; at this module's own
+defaults it turns out to be the LARGER of the two components (~90% of
+total duty), a real, disclosed correction to what the module originally
+computed, see docs/VALIDATION.md.
 
 ## Stillage (`ethanol_design/stillage.py`)
 

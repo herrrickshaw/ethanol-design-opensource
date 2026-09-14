@@ -24,7 +24,20 @@ cycle (this module's own default, 8 h, the midpoint); smaller patent-
 literature designs report much faster minutes-scale cycles at a
 correspondingly smaller bed -- both are real, just different design
 points, so `adsorption_time_h` is left fully overridable rather than
-treated as one universal constant."""
+treated as one universal constant.
+
+Regeneration duty (`regen_heater_duty_kW`) sums TWO real, additive
+energy components, not one: the SENSIBLE heat to raise the regeneration
+purge stream to regeneration temperature (the original version of this
+module), plus the LATENT heat actually needed to desorb the water from
+the zeolite -- a real energy cost this module previously omitted. The
+heat of adsorption for 3A zeolite/water is a real, cited figure (1,800
+BTU/lb H2O = 4.19 MJ/kg water, Interra Global's published mSORB(R) 3A
+EDG datasheet -- see docs/VENDOR_REFERENCE.md), added here directly in
+response to finding that real vendor number rather than assumed from
+memory. It is a genuinely non-negligible addition -- see
+docs/VALIDATION.md for how large a fraction of total regeneration duty
+it turns out to be at this module's own default parameters."""
 from __future__ import annotations
 
 import math
@@ -33,6 +46,7 @@ from dataclasses import dataclass
 import CoolProp.CoolProp as CP
 
 BIS_IS_15464_MAX_WATER_VOL_FRAC = 0.008  # India anhydrous fuel-ethanol spec
+HEAT_OF_ADSORPTION_MJ_PER_KG_WATER = 4.19  # 1,800 BTU/lb H2O, Interra Global mSORB 3A EDG datasheet
 
 
 @dataclass
@@ -44,6 +58,8 @@ class DehydrationBedResult:
     bed_height_m: float
     n_beds: int
     regen_ethanol_vapor_flow_kg_s: float
+    regen_sensible_duty_kW: float
+    regen_latent_duty_kW: float
     regen_heater_duty_kW: float
     meets_bis_spec: bool
     height_to_diameter_ratio: float
@@ -106,7 +122,9 @@ def size_dehydration_bed(
 
     regen_flow_kg_s = regen_purge_fraction_of_feed * ethanol_vapor_mass_flow_kg_s
     cp_ethanol_vapor = CP.PropsSI("Cpmass", "T", feed_temperature_K, "P", 101325.0, "Ethanol")
-    regen_duty_kW = regen_flow_kg_s * cp_ethanol_vapor * (regen_temperature_C + 273.15 - feed_temperature_K) / 1000.0
+    sensible_duty_kW = regen_flow_kg_s * cp_ethanol_vapor * (regen_temperature_C + 273.15 - feed_temperature_K) / 1000.0
+    latent_duty_kW = water_removed_kg * HEAT_OF_ADSORPTION_MJ_PER_KG_WATER * 1000.0 / (regen_time_h * 3600.0)
+    regen_duty_kW = sensible_duty_kW + latent_duty_kW
 
     # A very slender (tall, narrow) single vessel is a real geometry, not a modeling
     # error, but past roughly 8:1 height:diameter, most conceptual-design practice
@@ -124,6 +142,8 @@ def size_dehydration_bed(
         bed_height_m=bed_height_m,
         n_beds=n_beds,
         regen_ethanol_vapor_flow_kg_s=regen_flow_kg_s,
+        regen_sensible_duty_kW=sensible_duty_kW,
+        regen_latent_duty_kW=latent_duty_kW,
         regen_heater_duty_kW=regen_duty_kW,
         meets_bis_spec=outlet_water_vol_frac <= BIS_IS_15464_MAX_WATER_VOL_FRAC,
         height_to_diameter_ratio=aspect_ratio,

@@ -15,6 +15,26 @@ def test_typical_scale_meets_bis_spec_and_returns_positive_sizing():
     assert r.regen_heater_duty_kW > 0
 
 
+def test_regen_duty_is_the_sum_of_sensible_and_latent_components():
+    r = DH.size_dehydration_bed(ethanol_vapor_mass_flow_kg_s=1.9, inlet_water_mass_frac=0.045)
+    assert r.regen_heater_duty_kW == pytest.approx(r.regen_sensible_duty_kW + r.regen_latent_duty_kW, rel=1e-9)
+
+
+def test_latent_duty_matches_the_cited_heat_of_adsorption():
+    r = DH.size_dehydration_bed(ethanol_vapor_mass_flow_kg_s=1.9, inlet_water_mass_frac=0.045, regen_time_h=4.0)
+    expected_latent_kW = r.water_removed_per_cycle_kg * DH.HEAT_OF_ADSORPTION_MJ_PER_KG_WATER * 1000.0 / (4.0 * 3600.0)
+    assert r.regen_latent_duty_kW == pytest.approx(expected_latent_kW, rel=1e-9)
+
+
+def test_latent_duty_dominates_regeneration_energy():
+    # A real finding from adding this term: the latent heat of desorption is the
+    # majority of regeneration duty at this module's own default parameters, not
+    # a small correction -- the original sensible-heat-only model understated
+    # regeneration duty roughly tenfold.
+    r = DH.size_dehydration_bed(ethanol_vapor_mass_flow_kg_s=1.9, inlet_water_mass_frac=0.045)
+    assert r.regen_latent_duty_kW > r.regen_sensible_duty_kW
+
+
 def test_three_beds_needed_when_regen_plus_cooldown_exceeds_adsorption_time():
     r = DH.size_dehydration_bed(ethanol_vapor_mass_flow_kg_s=1.9, inlet_water_mass_frac=0.045,
                                 adsorption_time_h=4.0, regen_time_h=4.0, cooldown_time_h=1.5)

@@ -16,11 +16,12 @@ Dynamic: license-file
 
 # Ethanol Design (open-source)
 
-Interactive, open-source conceptual sizing tools for a molasses/cane-
-juice fuel-ethanol distillery — feedstock characterization, batch
-fermentation, Fenske-Underwood-Gilliland shortcut distillation, 3A
-molecular-sieve dehydration to anhydrous fuel ethanol, and spent-wash
-(vinasse) characterization. Sibling project to
+Interactive, open-source conceptual sizing tools for a fuel-ethanol
+distillery — molasses/cane-juice AND grain (rice, maize) routes,
+batch fermentation, Fenske-Underwood-Gilliland shortcut distillation, 3A
+molecular-sieve dehydration to anhydrous fuel ethanol, and both
+co-products a real distillery produces: spent-wash (vinasse) for the
+molasses route, DDGS for the grain route. Sibling project to
 [lng-design-opensource](https://github.com/herrrickshaw/lng-design-opensource),
 [biomass-to-syngas-opensource](https://github.com/herrrickshaw/biomass-to-syngas-opensource)
 and [coal-to-urea-design-opensource](https://github.com/herrrickshaw/coal-to-urea-design-opensource):
@@ -43,8 +44,9 @@ any proprietary vendor, licensor, or client engineering data.
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest -q                                        # 32 tests
+pytest -q                                        # 41 tests
 python examples/full_chain_worked_example.py     # cane -> ethanol, end to end
+python examples/grain_worked_example.py          # rice/maize -> ethanol + DDGS, end to end
 streamlit run streamlit_app.py                   # interactive app
 ```
 
@@ -53,11 +55,23 @@ streamlit run streamlit_app.py                   # interactive app
 | Module | Method | Key outputs |
 |---|---|---|
 | `ethanol_design/properties.py` | CoolProp HEOS ethanol-water equation of state | Azeotrope location (found numerically, cross-checked vs. the textbook figure), bubble points, relative volatility |
-| `ethanol_design/feedstock.py` | India cane/molasses TFS routes + exact starch-hydrolysis stoichiometry | Fermentable sugar mass flow by route (cane juice, B-heavy, C-heavy molasses, grain) |
+| `ethanol_design/feedstock.py` | India cane/molasses TFS routes + exact starch-hydrolysis stoichiometry | Fermentable sugar mass flow by route (cane juice, B-heavy, C-heavy molasses) |
+| `ethanol_design/starch_hydrolysis.py` | Liquefaction (alpha-amylase) + saccharification (glucoamylase), real sub-100% conversion efficiency | Fermentable glucose from milled rice, broken rice, or maize |
 | `ethanol_design/fermentation.py` | Gay-Lussac stoichiometry + fermentation efficiency | Ethanol/CO2 mass flow, wash strength, fermenter sizing |
 | `ethanol_design/distillation.py` | Fenske-Underwood-Gilliland shortcut, CoolProp-derived relative volatility | Minimum/actual stages, minimum/actual reflux, distillate purity |
 | `ethanol_design/dehydration.py` | 3A zeolite VPSA (same two-bed GPSA-style structure as the sibling LNG repo's `molecular_sieve.py`) | Bed mass/diameter/height, number of beds, regen duty, BIS IS 15464 compliance |
-| `ethanol_design/stillage.py` | CPCB spent-wash mass balance | Spent-wash flow, COD/BOD load, fresh-water-cap compliance |
+| `ethanol_design/stillage.py` | CPCB spent-wash mass balance (molasses route) | Spent-wash flow, COD/BOD load, fresh-water-cap compliance |
+| `ethanol_design/ddgs.py` | Exact mass balance: non-starch solids + unconverted starch + yeast biomass (grain route) | DDGS co-product flow at commercial moisture spec |
+
+## Grain route: a real, honestly-disclosed gap
+
+`examples/grain_worked_example.py` runs milled rice, broken rice, and
+maize against real published India litres-per-tonne figures (450, 440,
+380 L/tonne respectively). Unlike the molasses route, the model
+consistently OVERSHOOTS real plant output by 13-21% — a genuine finding
+reported as-is rather than tuned away: the default 95% starch-hydrolysis
+efficiency is a lab-optimized ceiling, and real full-scale grain
+distilleries evidently run below it. See `docs/VALIDATION.md`.
 
 ## Validated against real, independently published figures
 

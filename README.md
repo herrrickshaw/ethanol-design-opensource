@@ -68,8 +68,14 @@ weight-point** of the standard textbook reference. See
 geometry limitation the worked example surfaced (an unrealistically
 slender single dehydration vessel at industrial scale — flagged by the
 module, not hidden). `docs/VENDOR_REFERENCE.md` cross-checks this
-repo's dehydration technology choice against Praj Industries, the real,
-India-headquartered market leader in fuel-ethanol plant technology.
+repo's dehydration technology against real, quantified vendor specs
+(Vogelbusch's own two-bed vacuum-regenerated PSA structure and 0.5%
+water product spec; Interra Global's published heat of adsorption) as
+well as Praj Industries, the real, India-headquartered market leader —
+and the Interra Global figure directly caught a missing energy term in
+`dehydration.py`'s regeneration-duty calculation (9 kW → 116 kW once
+fixed), documented honestly in `docs/VALIDATION.md` rather than quietly
+patched.
 
 ## Related open-source work
 

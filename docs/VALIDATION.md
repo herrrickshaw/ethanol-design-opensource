@@ -81,6 +81,25 @@ right input once available, exactly the same epistemic stance this
 project takes everywhere else a "typical" literature figure stands in
 for a real, unmeasured process.
 
+## Dehydration regeneration duty -- a real vendor number exposed a missing energy term
+
+Cross-checking `dehydration.py` against real molecular-sieve vendor data
+(docs/VENDOR_REFERENCE.md) surfaced a genuine gap in the original
+module, not just a confirmation: Interra Global's published mSORB 3A
+EDG datasheet gives a real heat-of-adsorption figure (1,800 BTU/lb H2O
+= 4.19 MJ/kg water) that the original `regen_heater_duty_kW` calculation
+did not include at all -- it summed only the sensible heat to raise the
+regeneration purge stream to regeneration temperature. At this module's
+own default parameters, adding the latent term changes the computed
+regeneration duty from **9 kW to 116 kW** for the full-chain worked
+example's B-heavy molasses case -- the latent heat of desorption turns
+out to be roughly **90% of total regeneration duty**, not a small
+correction on top of an already-complete sensible-heat estimate. This
+was found and fixed in the same session the vendor research that
+revealed it was done, not left as a known gap -- see `dehydration.py`'s
+own docstring and test suite (`test_latent_duty_dominates_regeneration_energy`)
+for the fix and the regression guarding it.
+
 ## Full-chain worked example
 
 `examples/full_chain_worked_example.py` runs a representative
