@@ -53,7 +53,9 @@ weight-point** of the standard textbook reference. See
 `docs/VALIDATION.md` for both findings in full, including a real bed-
 geometry limitation the worked example surfaced (an unrealistically
 slender single dehydration vessel at industrial scale — flagged by the
-module, not hidden).
+module, not hidden). `docs/VENDOR_REFERENCE.md` cross-checks this
+repo's dehydration technology choice against Praj Industries, the real,
+India-headquartered market leader in fuel-ethanol plant technology.
 
 ## Related open-source work
 
