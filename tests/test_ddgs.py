@@ -29,3 +29,13 @@ def test_higher_hydrolysis_efficiency_reduces_unconverted_starch_and_ddgs():
 def test_rejects_implausible_moisture_fraction():
     with pytest.raises(ValueError):
         D.characterize_ddgs(1000.0, 0.80, 0.95, 650.0, ddgs_moisture_frac=1.0)
+
+
+def test_ddgs_by_hand():
+    # 10 kg/s grain, 80 % starch, 95 % hydrolysis, 8 kg/s sugar fermented:
+    # non-starch 2.0 + unconverted 0.4 + yeast 0.64 = 3.04 kg/s solids
+    # / 0.9 = 3.3778 kg/s = 291.84 t/day
+    r = D.characterize_ddgs(10.0, 0.80, 0.95, 8.0)
+    assert r.total_ddgs_solids_kg_s == pytest.approx(3.04)
+    assert r.ddgs_flow_kg_s == pytest.approx(3.37778, rel=1e-5)
+    assert r.ddgs_flow_tonne_day == pytest.approx(291.84, rel=1e-5)

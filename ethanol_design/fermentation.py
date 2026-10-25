@@ -63,7 +63,9 @@ def ferment(feedstock: FeedstockAnalysis, wash_water_kg_s: float,
     co2_kg_s = sugar * THEORETICAL_CO2_YIELD_KG_PER_KG_SUGAR * fermentation_efficiency
     ethanol_l_s = ethanol_kg_s / ETHANOL_DENSITY_KG_L
 
-    total_wash_kg_s = feedstock.mass_flow_kg_s + wash_water_kg_s - sugar * fermentation_efficiency - co2_kg_s
+    # Consumed sugar becomes ethanol + CO2 (mass-conserving); only the CO2 leaves the
+    # fermenter, the ethanol stays in the wash.
+    total_wash_kg_s = feedstock.mass_flow_kg_s + wash_water_kg_s - co2_kg_s
     # Approximate wash volume as mass/density of a dilute (mostly water) mixture --
     # adequate for a conceptual %v/v estimate, not a precision hydrometer reading.
     wash_water_like_density_kg_l = 1.0
