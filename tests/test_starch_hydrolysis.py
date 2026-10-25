@@ -34,3 +34,12 @@ def test_rejects_efficiency_outside_zero_to_one():
         SH.hydrolyze_starch(1000.0, starch_mass_frac=0.72, hydrolysis_efficiency=1.5)
     with pytest.raises(ValueError):
         SH.hydrolyze_starch(1000.0, starch_mass_frac=0.72, hydrolysis_efficiency=0.0)
+
+
+def test_starch_to_glucose_by_hand():
+    # 1 kg starch + water -> 180.156/162.14 = 1.111114 kg glucose; x 0.80 x 0.95 = 0.844447
+    from ethanol_design import starch_hydrolysis as SH
+    fs = SH.broken_rice(10.0)
+    assert fs.tfs_mass_frac == pytest.approx(0.844447, rel=1e-5)
+    with pytest.raises(ValueError):
+        SH.hydrolyze_starch(1.0, 1.0)

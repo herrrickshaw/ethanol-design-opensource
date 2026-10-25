@@ -25,3 +25,13 @@ def test_fresh_water_cap_flag():
 
 def test_default_ratio_within_the_cited_8_to_15_range():
     assert 8.0 <= S.DEFAULT_SPENT_WASH_RATIO_L_PER_L_ALCOHOL <= 15.0
+
+
+def test_stillage_by_hand():
+    # 1 L/s alcohol x 12 = 12 L/s = 1036.8 m3/day; COD 150,000 mg/L -> 155,520 kg/day
+    r = S.characterize_stillage(1.0, fresh_water_flow_l_s=15.0)
+    assert r.spent_wash_flow_m3_day == pytest.approx(1036.8)
+    assert r.cod_load_kg_day == pytest.approx(155520.0)
+    assert r.bod_load_kg_day == pytest.approx(46656.0)
+    assert r.meets_cpcb_fresh_water_cap  # exactly at the 15 L/L cap
+    assert S.characterize_stillage(0.0, 1.0).meets_cpcb_fresh_water_cap is False

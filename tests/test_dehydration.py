@@ -58,3 +58,25 @@ def test_undersized_bed_raises_pancake_guard():
 def test_rejects_implausible_inlet_water_content():
     with pytest.raises(ValueError):
         DH.size_dehydration_bed(ethanol_vapor_mass_flow_kg_s=1.9, inlet_water_mass_frac=0.5)
+
+
+def test_bed_sizing_by_hand():
+    # 1 kg/s, 6 wt% water, 8 h: 1 x 3600 x 8 x 0.06 = 1728 kg water/cycle
+    # sieve = 1728/0.04 = 43,200 kg -> 61.714 m3 at 700 kg/m3
+    # area = (1/1.5 m3/s)/0.30 m/s = 2.2222 m2 -> D = 1.6821 m, H = 27.771 m
+    # latent duty = 1728 x 4.19 MJ/kg / (4 h x 3600 s) = 502.8 kW
+    r = DH.size_dehydration_bed(1.0, inlet_water_mass_frac=0.06)
+    assert r.water_removed_per_cycle_kg == pytest.approx(1728.0)
+    assert r.bed_mass_kg == pytest.approx(43200.0)
+    assert r.bed_volume_m3 == pytest.approx(61.7143, rel=1e-5)
+    assert r.bed_diameter_m == pytest.approx(1.68209, rel=1e-5)
+    assert r.bed_height_m == pytest.approx(27.7714, rel=1e-5)
+    assert r.regen_latent_duty_kW == pytest.approx(502.8, rel=1e-6)
+    assert r.n_beds == 2
+    assert r.recommend_parallel_vessels  # H/D = 16.5 > 8
+
+
+def test_bis_flag_reflects_the_requested_outlet_spec_only():
+    # meets_bis_spec only compares the caller's outlet target with the spec;
+    # it does not model breakthrough. Documented behaviour, pinned here.
+    assert not DH.size_dehydration_bed(1.0, 0.06, outlet_water_vol_frac=0.01).meets_bis_spec
