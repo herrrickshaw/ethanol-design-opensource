@@ -1,0 +1,161 @@
+{
+ "azeotrope": {
+  "T_K": 351.4379104219968,
+  "relative_volatility": 1.000000877459232,
+  "x_ethanol_mole": 0.8917683410644532,
+  "y_ethanol_mole": 0.8917684257546171
+ },
+ "bed": {
+  "bed_diameter_m": 1.68208834801344,
+  "bed_height_m": 32.400000000000006,
+  "bed_mass_kg": 50400.00000000001,
+  "bed_volume_m3": 72.00000000000001,
+  "height_to_diameter_ratio": 19.261770666365216,
+  "meets_bis_spec": true,
+  "n_beds": 2,
+  "recommend_parallel_vessels": true,
+  "regen_ethanol_vapor_flow_kg_s": 0.2,
+  "regen_heater_duty_kW": 630.6017545872534,
+  "regen_latent_duty_kW": 586.6,
+  "regen_sensible_duty_kW": 44.001754587253366,
+  "water_removed_per_cycle_kg": 2016.0000000000002
+ },
+ "bubble": {
+  "T_K": 353.001931771163,
+  "relative_volatility": 1.874309359009066,
+  "x_ethanol_mole": 0.5,
+  "y_ethanol_mole": 0.6520903371567647
+ },
+ "col": {
+  "distillate_mass_frac_ethanol": 0.93,
+  "n_actual_stages": 15.058279642937574,
+  "n_min_stages": 7.843769960678405,
+  "r_actual": 12.141787657597494,
+  "r_min": 9.339836659690379,
+  "relative_volatility_avg": 3.6647107827496552,
+  "x_bottoms_mole": 0.0001955867707840957,
+  "x_distillate_mole": 0.8385909000633348,
+  "x_feed_mole": 0.032886439285084605
+ },
+ "conv": [
+  0.5228866548405507,
+  0.14353846530897546
+ ],
+ "ddgs": {
+  "ddgs_flow_kg_s": 2.0273611111111114,
+  "ddgs_flow_tonne_day": 175.16400000000004,
+  "non_starch_solids_kg_s": 1.4475,
+  "total_ddgs_solids_kg_s": 1.8246250000000002,
+  "unconverted_starch_kg_s": 0.2171250000000002,
+  "yeast_biomass_kg_s": 0.16
+ },
+ "feed_b": {
+  "mass_flow_kg_s": 0.8388249999999999,
+  "name": "B-heavy molasses",
+  "tfs_mass_frac": 0.5
+ },
+ "feed_broken": {
+  "mass_flow_kg_s": 5.79,
+  "name": "broken rice (hydrolysed)",
+  "tfs_mass_frac": 0.8444465276921181
+ },
+ "feed_c": {
+  "mass_flow_kg_s": 0.52065,
+  "name": "C-heavy molasses",
+  "tfs_mass_frac": 0.4
+ },
+ "feed_cane": {
+  "mass_flow_kg_s": 11.57,
+  "name": "cane juice",
+  "tfs_mass_frac": 0.14
+ },
+ "feed_maize": {
+  "mass_flow_kg_s": 5.79,
+  "name": "maize (hydrolysed)",
+  "tfs_mass_frac": 0.7652796657209819
+ },
+ "feed_rice": {
+  "mass_flow_kg_s": 5.79,
+  "name": "milled rice (hydrolysed)",
+  "tfs_mass_frac": 0.8444465276921181
+ },
+ "ferm_b": {
+  "co2_mass_flow_kg_s": 0.18968992602536133,
+  "ethanol_mass_flow_kg_s": 0.1985602252246386,
+  "ethanol_volume_flow_l_s": 0.25166061498686765,
+  "feedstock_name": "B-heavy molasses",
+  "fermentable_sugar_kg_s": 0.41941249999999997,
+  "fermentation_efficiency": 0.9257,
+  "wash_ethanol_mass_frac": 0.07149243553203127,
+  "wash_ethanol_vol_pct": 9.061145187836663
+ },
+ "ferm_broken": {
+  "co2_mass_flow_kg_s": 2.211330292621192,
+  "ethanol_mass_flow_kg_s": 2.3147367398426053,
+  "ethanol_volume_flow_l_s": 2.933760126543226,
+  "feedstock_name": "broken rice (hydrolysed)",
+  "fermentable_sugar_kg_s": 4.889345395337364,
+  "fermentation_efficiency": 0.9257,
+  "wash_ethanol_mass_frac": 0.14094822761426787,
+  "wash_ethanol_vol_pct": 17.86416066087045
+ },
+ "ferm_c": {
+  "co2_mass_flow_kg_s": 0.09419085981948977,
+  "ethanol_mass_flow_kg_s": 0.0985954221805102,
+  "ethanol_volume_flow_l_s": 0.1249625122693412,
+  "feedstock_name": "C-heavy molasses",
+  "fermentable_sugar_kg_s": 0.20826,
+  "fermentation_efficiency": 0.9257,
+  "wash_ethanol_mass_frac": 0.05490875866907605,
+  "wash_ethanol_vol_pct": 6.959285002417752
+ },
+ "ferm_cane": {
+  "co2_mass_flow_kg_s": 0.7325955763738095,
+  "ethanol_mass_flow_kg_s": 0.7668532836261905,
+  "ethanol_volume_flow_l_s": 0.9719306509837649,
+  "feedstock_name": "cane juice",
+  "fermentable_sugar_kg_s": 1.6198000000000001,
+  "fermentation_efficiency": 0.9257,
+  "wash_ethanol_mass_frac": 0.017409509109191,
+  "wash_ethanol_vol_pct": 2.206528404206717
+ },
+ "ferm_maize": {
+  "co2_mass_flow_kg_s": 2.0040180776879546,
+  "ethanol_mass_flow_kg_s": 2.0977301704823605,
+  "ethanol_volume_flow_l_s": 2.658720114679798,
+  "feedstock_name": "maize (hydrolysed)",
+  "fermentable_sugar_kg_s": 4.430969264524485,
+  "fermentation_efficiency": 0.9257,
+  "wash_ethanol_mass_frac": 0.12300348468093399,
+  "wash_ethanol_vol_pct": 15.589795270080355
+ },
+ "ferm_rice": {
+  "co2_mass_flow_kg_s": 2.211330292621192,
+  "ethanol_mass_flow_kg_s": 2.3147367398426053,
+  "ethanol_volume_flow_l_s": 2.933760126543226,
+  "feedstock_name": "milled rice (hydrolysed)",
+  "fermentable_sugar_kg_s": 4.889345395337364,
+  "fermentation_efficiency": 0.9257,
+  "wash_ethanol_mass_frac": 0.14094822761426787,
+  "wash_ethanol_vol_pct": 17.86416066087045
+ },
+ "fsize": {
+  "batch_cycle_time_h": 36.0,
+  "note": "one fermenter of this size, filled and emptied every cycle, sustains the given continuous feed rate; add a second (or more) in staggered rotation for turnaround/cleaning margin",
+  "single_fermenter_working_volume_m3": 4702.013788235294
+ },
+ "fsize_f": {
+  "batch_cycle_time_h": 36.0,
+  "note": "one fermenter of this size, filled and emptied every cycle, sustains the given continuous feed rate; add a second (or more) in staggered rotation for turnaround/cleaning margin",
+  "single_fermenter_working_volume_m3": 4702.013788235294
+ },
+ "still": {
+  "alcohol_flow_l_s": 10.0,
+  "bod_load_kg_day": 466560.0,
+  "cod_load_kg_day": 1555200.0,
+  "fresh_water_flow_l_s": 80.0,
+  "meets_cpcb_fresh_water_cap": true,
+  "spent_wash_flow_l_s": 120.0,
+  "spent_wash_flow_m3_day": 10368.0
+ }
+}
