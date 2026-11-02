@@ -1,5 +1,3 @@
-import math
-
 import pytest
 
 from ethanol_design import distillation as D
