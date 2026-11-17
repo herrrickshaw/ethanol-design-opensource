@@ -1,107 +1,92 @@
 # Ethanol Design (open-source)
 
-<!-- how-to-use-with-ai -->
-> **New here?** See [How to use this repo with AI (Claude, Gemini, ChatGPT)](HOW_TO_USE_WITH_AI.md) — clone it, paste it into an AI tool, and ask in plain English.
+Conceptual sizing tools for a fuel-ethanol distillery, for process engineers, students and policy analysts
+screening a plant before committing to a licensed simulator. It covers molasses/cane-juice and grain (rice,
+maize) routes: batch fermentation, Fenske-Underwood-Gilliland shortcut distillation, 3A molecular-sieve
+dehydration to anhydrous fuel ethanol, and the co-products (spent wash/vinasse for molasses, DDGS for grain).
+It produces Python result objects, printed worked examples and a Streamlit app.
 
+> Status: active, research-only. Textbook and public-domain correlations only; nothing derives from any
+> proprietary vendor, licensor or client data. Educational use; not a substitute for detailed design.
 
-Interactive, open-source conceptual sizing tools for a fuel-ethanol
-distillery — molasses/cane-juice AND grain (rice, maize) routes,
-batch fermentation, Fenske-Underwood-Gilliland shortcut distillation, 3A
-molecular-sieve dehydration to anhydrous fuel ethanol, and both
-co-products a real distillery produces: spent-wash (vinasse) for the
-molasses route, DDGS for the grain route. Sibling project to
-[lng-design-opensource](https://github.com/herrrickshaw/lng-design-opensource),
-[biomass-to-syngas-opensource](https://github.com/herrrickshaw/biomass-to-syngas-opensource)
-and [coal-to-urea-design-opensource](https://github.com/herrrickshaw/coal-to-urea-design-opensource):
-same discipline — public-domain/textbook correlations only, CoolProp for
-real thermodynamic properties, every method cited, every module tested,
-every worked example actually run end to end.
+New here? See [How to use this repo with AI (Claude, Gemini, ChatGPT)](HOW_TO_USE_WITH_AI.md).
 
-**Real-world motivation**: India's E20 (20% ethanol blending) program is
-the direct policy driver behind sugarcane molasses diversion to ethanol.
-This repo's fermentation-efficiency default is cross-checked against
-THREE independently published India ethanol-policy figures (B-heavy
-molasses, C-heavy molasses, and direct cane-juice routes) — see
-`docs/VALIDATION.md` for the full finding.
-
-**Scope**: fully generic and literature-only. Nothing here derives from
-any proprietary vendor, licensor, or client engineering data.
+## What it does
+- Finds the ethanol-water azeotrope numerically from CoolProp HEOS and derives bubble points and relative volatility.
+- Computes fermentable sugar from India cane-juice, B-heavy and C-heavy molasses routes, and from milled rice, broken rice or maize via starch hydrolysis.
+- Applies Gay-Lussac stoichiometry with fermentation efficiency for ethanol/CO2 flows, wash strength and fermenter sizing.
+- Sizes a Fenske-Underwood-Gilliland distillation column from mass-fraction specs.
+- Sizes a two-bed 3A zeolite VPSA dehydration unit and checks BIS IS 15464 water spec compliance.
+- Balances CPCB spent wash (molasses) and DDGS output (grain).
 
 ## Quick start
-
 ```bash
+git clone https://github.com/herrrickshaw/ethanol-design-opensource
+cd ethanol-design-opensource
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-pytest -q                                        # 41 tests
 python examples/full_chain_worked_example.py     # cane -> ethanol, end to end
-python examples/grain_worked_example.py          # rice/maize -> ethanol + DDGS, end to end
+python examples/grain_worked_example.py          # rice/maize -> ethanol + DDGS
 streamlit run streamlit_app.py                   # interactive app
 ```
 
-## Modules
+## How it works
+Stages run in order; each module is a set of pure functions returning dataclasses.
 
-| Module | Method | Key outputs |
-|---|---|---|
-| `ethanol_design/properties.py` | CoolProp HEOS ethanol-water equation of state | Azeotrope location (found numerically, cross-checked vs. the textbook figure), bubble points, relative volatility |
-| `ethanol_design/feedstock.py` | India cane/molasses TFS routes + exact starch-hydrolysis stoichiometry | Fermentable sugar mass flow by route (cane juice, B-heavy, C-heavy molasses) |
-| `ethanol_design/starch_hydrolysis.py` | Liquefaction (alpha-amylase) + saccharification (glucoamylase), real sub-100% conversion efficiency | Fermentable glucose from milled rice, broken rice, or maize |
-| `ethanol_design/fermentation.py` | Gay-Lussac stoichiometry + fermentation efficiency | Ethanol/CO2 mass flow, wash strength, fermenter sizing |
-| `ethanol_design/distillation.py` | Fenske-Underwood-Gilliland shortcut, CoolProp-derived relative volatility | Minimum/actual stages, minimum/actual reflux, distillate purity |
-| `ethanol_design/dehydration.py` | 3A zeolite VPSA (same two-bed GPSA-style structure as the sibling LNG repo's `molecular_sieve.py`) | Bed mass/diameter/height, number of beds, regen duty, BIS IS 15464 compliance |
-| `ethanol_design/stillage.py` | CPCB spent-wash mass balance (molasses route) | Spent-wash flow, COD/BOD load, fresh-water-cap compliance |
-| `ethanol_design/ddgs.py` | Exact mass balance: non-starch solids + unconverted starch + yeast biomass (grain route) | DDGS co-product flow at commercial moisture spec |
+| Stage | Module | Method | Key outputs |
+|---|---|---|---|
+| Properties | `ethanol_design/properties.py` | CoolProp HEOS ethanol-water EOS | Azeotrope (cross-checked vs textbook), bubble points, relative volatility |
+| Feedstock | `ethanol_design/feedstock.py` | India cane/molasses TFS routes, exact starch stoichiometry | Fermentable sugar mass flow by route |
+| Starch hydrolysis | `ethanol_design/starch_hydrolysis.py` | Alpha-amylase liquefaction + glucoamylase saccharification, sub-100% efficiency | Fermentable glucose from rice/maize |
+| Fermentation | `ethanol_design/fermentation.py` | Gay-Lussac stoichiometry + efficiency | Ethanol/CO2 flow, wash strength, fermenter size |
+| Distillation | `ethanol_design/distillation.py` | Fenske-Underwood-Gilliland, CoolProp relative volatility | Min/actual stages, min/actual reflux, distillate purity |
+| Dehydration | `ethanol_design/dehydration.py` | 3A zeolite VPSA (same two-bed GPSA-style structure as the sibling LNG repo's `molecular_sieve.py`) | Bed mass/diameter/height, beds, regen duty, IS 15464 check |
+| Stillage | `ethanol_design/stillage.py` | CPCB spent-wash mass balance (molasses) | Spent-wash flow, COD/BOD load, fresh-water-cap compliance |
+| DDGS | `ethanol_design/ddgs.py` | Mass balance: non-starch solids + unconverted starch + yeast (grain) | DDGS flow at commercial moisture spec |
 
-## Grain route: a real, honestly-disclosed gap
+Every correlation is cited per module in `docs/METHODOLOGY.md`; validation findings are in `docs/VALIDATION.md`.
 
-`examples/grain_worked_example.py` runs milled rice, broken rice, and
-maize against real published India litres-per-tonne figures (450, 440,
-380 L/tonne respectively). Unlike the molasses route, the model
-consistently OVERSHOOTS real plant output by 13-21% — a genuine finding
-reported as-is rather than tuned away: the default 95% starch-hydrolysis
-efficiency is a lab-optimized ceiling, and real full-scale grain
-distilleries evidently run below it. See `docs/VALIDATION.md`.
+## Repository layout
+| Path | Purpose |
+|---|---|
+| `ethanol_design/` | Library modules listed above |
+| `examples/` | `full_chain_worked_example.py` (1,000 t/day B-heavy molasses), `grain_worked_example.py` (500 t/day grain) |
+| `streamlit_app.py` | Interactive front end |
+| `tests/` | Unit tests per module plus characterisation tests against `tests/golden/` |
+| `docs/` | `METHODOLOGY.md`, `VALIDATION.md`, `VENDOR_REFERENCE.md` |
 
-## Validated against real, independently published figures
+## Data sources
+No external data is fetched at run time. Published figures used as cross-checks (India ethanol-policy
+litres-per-tonne figures, BIS IS 15464, CPCB spent-wash norms, vendor specs from Vogelbusch, Interra Global and
+Praj Industries) are cited in `docs/VALIDATION.md` and `docs/VENDOR_REFERENCE.md`.
 
-`examples/full_chain_worked_example.py` sizes a 1,000 t/day
-B-heavy-molasses distillery and reproduces the publicly quoted **21.75 L
-of ethanol per tonne of cane** figure exactly, and the ethanol-water
-azeotrope location it derives from CoolProp lands within **0.15
-weight-point** of the standard textbook reference. See
-`docs/VALIDATION.md` for both findings in full, including a real bed-
-geometry limitation the worked example surfaced (an unrealistically
-slender single dehydration vessel at industrial scale — flagged by the
-module, not hidden). `docs/VENDOR_REFERENCE.md` cross-checks this
-repo's dehydration technology against real, quantified vendor specs
-(Vogelbusch's own two-bed vacuum-regenerated PSA structure and 0.5%
-water product spec; Interra Global's published heat of adsorption) as
-well as Praj Industries, the real, India-headquartered market leader —
-and the Interra Global figure directly caught a missing energy term in
-`dehydration.py`'s regeneration-duty calculation (9 kW → 116 kW once
-fixed), documented honestly in `docs/VALIDATION.md` rather than quietly
-patched.
+## Configuration
+None required: no environment variables, no secrets. Design parameters are function arguments with documented
+defaults (for example `DEFAULT_HYDROLYSIS_EFFICIENCY`, `reflux_ratio_factor=1.3`).
 
-## Related open-source work
+## Testing
+```bash
+pytest -q        # 47 tests
+ruff check .
+```
+`tests/test_characterisation.py` asserts that module outputs and the two worked examples reproduce the
+pre-refactor results exactly.
 
-[DWSIM](https://github.com/DanWBR/dwsim5), [IDAES](https://github.com/IDAES/idaes-pse) —
-general open-source process simulators, same as the sibling repos cite.
-Specific to this repo's process:
-[BioSTEAM](https://github.com/BioSTEAMDevelopmentGroup/biosteam) and its
-[Bioindustrial-Park](https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park)
-model library (Guest Group, UIUC) — real, published, peer-reviewed
-`sugarcane`/`cane`/`corn`/`cornstover` biorefinery flowsheets, the
-closest existing open-source prior art for a cane-to-ethanol process
-(consulted for context, not a dependency — every correlation here is
-independently sourced and cited per-module in `docs/METHODOLOGY.md`).
+## Limitations and known issues
+- Motivation: India's E20 blending programme. The fermentation-efficiency default is cross-checked against three independently published India figures (B-heavy molasses, C-heavy molasses, cane juice); see `docs/VALIDATION.md`.
+- Validated: the 1,000 t/day B-heavy example reproduces the publicly quoted 21.75 L ethanol per tonne of cane, and the derived azeotrope lies within 0.15 weight-point of the textbook value.
+- Grain route overshoots real plant output by 13-21% against 450 / 440 / 380 L per tonne (milled rice / broken rice / maize). The 95% starch-hydrolysis default is a lab-optimised ceiling; this is reported, not tuned away.
+- At industrial scale the single dehydration vessel comes out unrealistically slender; the module flags it.
+- The Interra Global heat-of-adsorption figure exposed a missing energy term in the regeneration duty (9 kW became 116 kW once fixed); documented in `docs/VALIDATION.md`.
+- Conceptual screening only: validate against a licensed simulator and vendor data before specifying equipment.
 
-## Disclaimer
+## Related repositories
+Siblings with the same discipline: [lng-design-opensource](https://github.com/herrrickshaw/lng-design-opensource),
+[biomass-to-syngas-opensource](https://github.com/herrrickshaw/biomass-to-syngas-opensource),
+[coal-to-urea-design-opensource](https://github.com/herrrickshaw/coal-to-urea-design-opensource).
+Prior art consulted (not dependencies): [DWSIM](https://github.com/DanWBR/dwsim5),
+[IDAES](https://github.com/IDAES/idaes-pse), [BioSTEAM](https://github.com/BioSTEAMDevelopmentGroup/biosteam)
+and its [Bioindustrial-Park](https://github.com/BioSTEAMDevelopmentGroup/Bioindustrial-Park) flowsheets.
 
-This tool implements textbook/public-domain conceptual sizing methods
-for early-stage screening only. It is not a substitute for a rigorous
-process simulator, fermentation kinetics model, or vendor-certified
-equipment data for detailed design. Always validate against a licensed
-simulator and vendor data before committing to equipment specifications.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+## Licence
+MIT; see [LICENSE](LICENSE).

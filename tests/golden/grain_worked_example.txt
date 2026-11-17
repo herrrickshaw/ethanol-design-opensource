@@ -1,0 +1,23 @@
+==============================================================================
+GRAIN-BASED FUEL-ETHANOL WORKED EXAMPLE (India: milled rice, broken rice, maize)
+==============================================================================
+
+=== milled rice: 500 t/day ===
+Fermentation: 506.7 L/tonne (published: 450.0 L/tonne, ratio 1.126)
+Distillation: 16 stages, distillate 94.0% w/w
+Dehydration: 106,325 kg sieve, 2 beds, meets BIS spec: True
+DDGS co-product: 170.9 t/day (non-starch solids 100.0 t/day, unconverted starch 20.0 t/day, yeast 33.8 t/day)
+
+=== broken rice: 500 t/day ===
+Fermentation: 506.7 L/tonne (published: 440.0 L/tonne, ratio 1.152)
+Distillation: 16 stages, distillate 94.0% w/w
+Dehydration: 106,325 kg sieve, 2 beds, meets BIS spec: True
+DDGS co-product: 170.9 t/day (non-starch solids 100.0 t/day, unconverted starch 20.0 t/day, yeast 33.8 t/day)
+
+=== maize: 500 t/day ===
+Fermentation: 459.2 L/tonne (published: 380.0 L/tonne, ratio 1.208)
+Distillation: 16 stages, distillate 94.0% w/w
+Dehydration: 96,357 kg sieve, 2 beds, meets BIS spec: True
+DDGS co-product: 206.9 t/day (non-starch solids 137.5 t/day, unconverted starch 18.1 t/day, yeast 30.6 t/day)
+
+=== Honest finding: this model consistently OVERSHOOTS published real-plant yields (13-21%), since its default hydrolysis efficiency (95%, a lab-optimized figure) combined with the molasses-calibrated fermentation efficiency (92.6%) outperforms what real full-scale grain distilleries report. See docs/VALIDATION.md. ===

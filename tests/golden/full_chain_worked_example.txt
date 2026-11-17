@@ -1,0 +1,13 @@
+=== B-heavy molasses distillery: 1000 t/day cane ===
+
+Feedstock: B-heavy molasses, 72.5 t/day, TFS 50%
+Fermentation: 21,751 L/day ethanol (21.75 L per tonne cane -- published figure: 21.75 L/t), wash strength 9.1% v/v
+Fermenter: 512 m3 working volume (36 h cycle)
+
+Distillation: 15 actual stages (Nmin 8.0, Rmin 11.03, R 14.33), distillate 94.0% w/w ethanol
+Dehydration: 9,129 kg sieve/bed, 2 beds, 0.77 m dia x 27.8 m, regen duty 116 kW, meets BIS IS 15464 anhydrous spec: True
+  (height:diameter = 35.9 -- recommend splitting across parallel vessels rather than one very slender bed)
+
+Stillage: 261 m3/day spent wash, COD load 39,152 kg/day, meets CPCB fresh-water cap: True
+
+=== Validation: 21.75 L/tonne cane vs. published 21.75 L/tonne (MATCH) ===
