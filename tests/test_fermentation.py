@@ -44,3 +44,49 @@ def test_fermenter_sizing_scales_linearly_with_cycle_time():
     long = FM.fermenter_sizing(fs, wash_water_kg_s=3000.0, batch_cycle_time_h=48.0)
     assert long["single_fermenter_working_volume_m3"] == pytest.approx(
         2 * short["single_fermenter_working_volume_m3"])
+
+
+def test_gay_lussac_mass_is_conserved_ethanol_plus_co2_equals_sugar():
+    # 2 x 46.068 + 2 x 44.01 = 180.156 exactly
+    assert (FM.THEORETICAL_ETHANOL_YIELD_KG_PER_KG_SUGAR
+            + FM.THEORETICAL_CO2_YIELD_KG_PER_KG_SUGAR) == pytest.approx(1.0, abs=1e-12)
+    assert FM.THEORETICAL_ETHANOL_YIELD_KG_PER_KG_SUGAR == pytest.approx(0.511423, rel=1e-5)
+
+
+def test_b_heavy_litres_per_tonne_by_hand():
+    # 1 t cane -> 72.5 kg B-heavy -> 36.25 kg TFS x 0.511423 x 0.9257 = 17.1617 kg
+    # / 0.789 kg/L = 21.751 L.  NOTE: 0.9257 was itself backed out from this same
+    # published 21.75 L/t figure, so this is a consistency check, not validation.
+    fs = F.b_heavy_molasses_feedstock(1000.0)
+    r = FM.ferment(fs, wash_water_kg_s=0.0)
+    assert r.ethanol_mass_flow_kg_s == pytest.approx(17.1617, rel=1e-4)
+    assert r.ethanol_volume_flow_l_s == pytest.approx(21.751, rel=1e-4)
+
+
+def test_wash_mass_balance_keeps_the_ethanol_in_the_wash():
+    """Sugar consumed -> ethanol + CO2; only the CO2 leaves the fermenter.
+
+    10 kg/s molasses at 50 % TFS + 30 kg/s water, 100 % efficiency:
+      ethanol = 5 x 0.511423 = 2.557117 kg/s, CO2 = 2.442883 kg/s
+      wash    = 40 - 2.442883 = 37.557117 kg/s  -> ethanol 6.8086 % w/w
+    """
+    fs = F.FeedstockAnalysis("test molasses", 10.0, 0.50)
+    r = FM.ferment(fs, wash_water_kg_s=30.0, fermentation_efficiency=1.0)
+    assert r.ethanol_mass_flow_kg_s == pytest.approx(2.557117, rel=1e-6)
+    assert r.co2_mass_flow_kg_s == pytest.approx(2.442883, rel=1e-6)
+    assert r.wash_ethanol_mass_frac == pytest.approx(0.068086, rel=1e-4)
+
+
+def test_wash_mass_balance_with_partial_efficiency():
+    # unfermented sugar (here 20 %) stays dissolved in the wash
+    fs = F.FeedstockAnalysis("test molasses", 10.0, 0.50)
+    r = FM.ferment(fs, wash_water_kg_s=30.0, fermentation_efficiency=0.8)
+    co2 = 5 * 0.8 * 0.488577
+    assert r.wash_ethanol_mass_frac == pytest.approx(5 * 0.8 * 0.511423 / (40 - co2), rel=1e-4)
+
+
+def test_fermenter_volume_by_hand():
+    # (10 + 30) kg/s x 24 h x 3600 = 3,456,000 kg -> 3456 m3 / 0.85 = 4065.88 m3
+    fs = F.FeedstockAnalysis("test", 10.0, 0.5)
+    v = FM.fermenter_sizing(fs, 30.0, batch_cycle_time_h=24.0)
+    assert v["single_fermenter_working_volume_m3"] == pytest.approx(4065.882, rel=1e-6)

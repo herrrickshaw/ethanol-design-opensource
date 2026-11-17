@@ -79,6 +79,23 @@ def minimum_reflux_saturated_liquid_feed(x_feed_mole: float, x_distillate_mole: 
     return (x_distillate_mole - y_eq_at_feed) / (y_eq_at_feed - x_feed_mole)
 
 
+def minimum_reflux_from_vle(x_feed_mole: float, x_distillate_mole: float, P_Pa: float = 101325.0,
+                            n_points: int = 120) -> float:
+    """McCabe-Thiele Rmin for a saturated-liquid feed using the real (CoolProp HEOS)
+    equilibrium curve: the steepest rectifying line from (xD, xD) that touches the
+    curve anywhere in [xF, xD). Captures both the feed pinch and the tangent pinch
+    that ethanol-water's non-ideal curve produces; a single averaged alpha cannot."""
+    best = 0.0
+    for i in range(n_points):
+        x = x_feed_mole + (x_distillate_mole - x_feed_mole) * i / n_points
+        y = bubble_point(x, P_Pa).y_ethanol_mole
+        if y <= x:
+            raise ValueError("equilibrium curve at or below the diagonal between feed and distillate -- "
+                             "distillate target is at/beyond the azeotrope")
+        best = max(best, (x_distillate_mole - y) / (x_distillate_mole - x))
+    return best / (1 - best)
+
+
 def gilliland_stages(n_min: float, r_min: float, r_actual: float) -> float:
     """Molokanov et al. (1972) analytical fit to the Gilliland correlation:
     X = (R-Rmin)/(R+1), Y = 1 - exp[(1+54.4X)/(11+117.2X) * (X-1)/sqrt(X)],
@@ -106,7 +123,7 @@ def design_column(x_feed_mass_frac: float, x_distillate_mass_frac: float, x_bott
 
     alpha_avg = relative_volatility_avg(x_bot, x_dist, P_Pa)
     n_min = fenske_min_stages(x_dist, x_bot, alpha_avg)
-    r_min = minimum_reflux_saturated_liquid_feed(x_feed, x_dist, alpha_avg)
+    r_min = minimum_reflux_from_vle(x_feed, x_dist, P_Pa)
     r_actual = reflux_ratio_factor * r_min
     n_actual = gilliland_stages(n_min, r_min, r_actual)
 

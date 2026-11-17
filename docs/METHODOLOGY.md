@@ -66,11 +66,13 @@ Smith & Harriott, "Unit Operations of Chemical Engineering"). Relative
 volatility is computed from CoolProp's HEOS ethanol-water mixture
 equation of state at the column's bottoms and distillate compositions
 (geometric mean, per Seader/Henley eq. 5-39's top/bottom convention),
-not a single textbook alpha. Minimum reflux for a saturated-liquid feed
-is derived directly from the McCabe-Thiele pinch-point geometry (the
-rectifying operating line meets the equilibrium curve exactly at the
-feed composition) rather than quoting Underwood's own published formula
-from memory. The Gilliland number-of-stages step uses the Molokanov et
+not a single textbook alpha (used for Fenske Nmin). Minimum reflux for a
+saturated-liquid feed is taken from McCabe-Thiele geometry on the real
+CoolProp equilibrium curve: the steepest rectifying line from (xD, xD)
+that touches the curve anywhere between the feed and distillate, which
+covers both the feed pinch and ethanol-water's tangent pinch. (An earlier
+version put the pinch at the feed using the averaged alpha; for a ~8 wt%
+wash that over-stated Rmin about 3x versus the textbook VLE curve.) The Gilliland number-of-stages step uses the Molokanov et
 al. (1972) analytical fit to Gilliland's original empirical correlation
 (reproduced in Seader/Henley eq. 5-48).
 
