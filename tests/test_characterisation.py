@@ -1,6 +1,11 @@
-"""Characterisation tests: numeric outputs must match those captured from the
-original (pre-refactor) code. Golden files live in tests/golden/ and were
-generated from commit ce98f7a."""
+"""Characterisation tests: numeric outputs must match the golden files in tests/golden/.
+
+History: the goldens were first captured from commit ce98f7a. Commit 94c87fe then
+deliberately fixed two bugs (the fermented wash no longer loses its ethanol; Rmin now
+comes from the real VLE curve, 11.0 -> 3.3 for the worked example), which changed the
+fermentation and column outputs, so ``module_outputs.json`` and
+``full_chain_worked_example.txt`` were regenerated from the fixed code. The grain
+example is unaffected and still equals its original golden."""
 from __future__ import annotations
 
 import json
