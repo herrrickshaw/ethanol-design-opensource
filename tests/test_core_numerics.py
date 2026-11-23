@@ -405,3 +405,72 @@ def test_working_capacity_and_bulk_density_drive_bed_mass_and_volume():
                                 min_bed_height_m=0.1)
     assert r.bed_mass_kg == pytest.approx(2462.4 / 0.08)
     assert r.bed_volume_m3 == pytest.approx(2462.4 / 0.08 / 800.0)
+
+
+# ------------------------------------------------- boundary / survivor tests
+
+_EXACT_UNIT_STARCH = 162.14 / 180.156  # starch fraction whose glucose fraction is exactly 1.0 in IEEE doubles
+
+
+def _const_alpha_bubble_point(alpha):
+    def fake(x, P_Pa=101325.0):
+        return P.VLEPoint(x_ethanol_mole=x, y_ethanol_mole=alpha * x / (1 + (alpha - 1) * x), T_K=350.0,
+                          relative_volatility=alpha)
+    return fake
+
+
+def test_grain_feedstock_accepts_a_sugar_fraction_of_exactly_one():
+    assert _EXACT_UNIT_STARCH * (180.156 / 162.14) == 1.0  # premise of this test
+    assert F.grain_feedstock(10.0, _EXACT_UNIT_STARCH).tfs_mass_frac == 1.0
+
+
+def test_hydrolyze_starch_accepts_a_glucose_fraction_of_exactly_one():
+    assert _EXACT_UNIT_STARCH * (180.156 / 162.14) * 1.0 == 1.0
+    assert SH.hydrolyze_starch(10.0, _EXACT_UNIT_STARCH, 1.0).tfs_mass_frac == 1.0
+
+
+def test_hydrolyze_starch_bounds_name_the_offending_argument():
+    for bad in (0.0, 1.0):
+        with pytest.raises(ValueError, match="starch_mass_frac must be strictly between"):
+            SH.hydrolyze_starch(10.0, bad)
+    with pytest.raises(ValueError, match="hydrolysis_efficiency must be in"):
+        SH.hydrolyze_starch(10.0, 0.8, 1.5)
+
+
+def test_regen_heater_duty_is_sum_of_the_two_components():
+    r = DH.size_dehydration_bed(_M, _W)
+    assert r.regen_heater_duty_kW == pytest.approx(r.regen_sensible_duty_kW + r.regen_latent_duty_kW)
+    assert r.regen_heater_duty_kW > r.regen_latent_duty_kW
+
+
+def test_bed_height_exactly_at_the_minimum_is_allowed():
+    h = DH.size_dehydration_bed(_M, _W).bed_height_m
+    assert DH.size_dehydration_bed(_M, _W, min_bed_height_m=h).bed_height_m == h
+
+
+def test_minimum_reflux_from_vle_recovers_the_constant_alpha_pinch(monkeypatch):
+    monkeypatch.setattr(D, "bubble_point", _const_alpha_bubble_point(2.0))
+    # with a constant-alpha curve the pinch is at the feed: Rmin = 3.5 (see saturated-feed test)
+    assert D.minimum_reflux_from_vle(0.2, 0.8) == pytest.approx(3.5)
+    assert D.minimum_reflux_from_vle(0.2, 0.8) == pytest.approx(
+        D.minimum_reflux_saturated_liquid_feed(0.2, 0.8, 2.0))
+
+
+def test_minimum_reflux_from_vle_rejects_curve_touching_the_diagonal(monkeypatch):
+    def on_diagonal(x, P_Pa=101325.0):
+        return P.VLEPoint(x, x, 350.0, 1.0)
+    monkeypatch.setattr(D, "bubble_point", on_diagonal)
+    with pytest.raises(ValueError, match="at or below the diagonal"):
+        D.minimum_reflux_from_vle(0.2, 0.8)
+
+
+def test_design_column_rejects_feed_equal_to_distillate():
+    with pytest.raises(ValueError, match="x_bottoms < x_feed < x_distillate"):
+        D.design_column(0.5, 0.5, 0.001)
+
+
+def test_find_azeotrope_accepts_a_zero_at_the_bracket_end(monkeypatch):
+    # (y - x) == 0 everywhere: the product f(lo)*f(hi) is exactly 0, which is not "no sign change"
+    monkeypatch.setattr(P, "bubble_point", lambda x, P_Pa=101325.0: P.VLEPoint(x, x, 350.0, 1.0))
+    az = P.find_azeotrope(lo=0.7, hi=0.99)
+    assert 0.7 <= az.x_ethanol_mole <= 0.99
